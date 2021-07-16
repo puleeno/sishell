@@ -1,6 +1,6 @@
 <?php
 /**
-Plugin Name: Simple Shell for Development
+Plugin Name: Sishell - a simple Shell for development
 Author: Puleeno Nguyen
 Author URI: https://puleeno.com
 Version: 1.0.0
