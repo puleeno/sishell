@@ -187,7 +187,7 @@ class Sishell {
 	}
 
 	public function run($is_wp = true) {
-		if (!$is_wp || (isset($_GET['action']) && $_GET['action'] === 'sishell')) {
+		if ($is_wp === false || (isset($_GET['action']) && $_GET['action'] === 'sishell')) {
 			$this->execute_command();
 
 			$this->render_gui();
@@ -201,7 +201,10 @@ class Sishell {
 $sishell = new Sishell();
 
 if (defined('ABSPATH')) {
-	return add_action('plugins_loaded', array($sishell, 'run'));
+	if (!is_admin()) {
+		return add_action('plugins_loaded', array($sishell, 'run'));
+	}
+	return;
 }
 
 $sishell->run(false);
