@@ -37,19 +37,19 @@ class Sishell {
 	}
 
 	public function execute_command() {
-		if (isset($_POST['commands'])) {
-			ob_start();
-			$comamnds = explode("\n", $_POST['commands']);
-			$results = array();
-			foreach(array_filter($comamnds) as $command) {
-				$results[] = call_user_func($this->allowed_function);
-			}
+		$results = array();
+		if (isset($_POST['command'])) {
+			$commands = explode("\n", $_POST['command']);
 			
-			$ouput = ob_get_clean();
 
-			// Output JSON only
-			exit();
+			foreach($commands as $command) {
+				if (empty($command)) {
+					continue;
+				}
+				$results[] = call_user_func($this->allowed_function, $command);
+			}
 		}
+		return $results;
 	}
 
 	public function show_command_statuses() {
@@ -84,7 +84,13 @@ class Sishell {
 					  url: e.target.baseURI,
 					  data: new URLSearchParams(formData),
 					}).then(function(response) {
-						console.log(response);
+						var lines = response.split("\n");
+						var logs = document.querySelector('.log-outputs');
+						lines.forEach(function(line) {
+							logs.innerHTML += '<div>' + line.replace(' ', '&nbsp;') + '</div>';
+						});
+
+						document.querySelector('.sishell-command').value = '';
 					});
 				});
 			})(window, document, 'getElementById', 'querySelector', 'querySelectorAll', 'sishell-input', 'addEventListener', 'submit', 'ajax');
@@ -128,6 +134,8 @@ class Sishell {
 			}
 			.sishell-wrap .log-outputs {
 				flex: 1;
+				overflow-x: hidden;
+				overflow-y: scroll;
 			}
 			.active-commands, .log-outputs {
 				margin-bottom: 5px;
@@ -187,9 +195,15 @@ class Sishell {
 	}
 
 	public function run($is_wp = true) {
-		if ($is_wp === false || (isset($_GET['action']) && $_GET['action'] === 'sishell')) {
-			$this->execute_command();
+		if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
+			$results = $this->execute_command();
+
+			echo implode("\n", $results);
+
+			return;
+		}
+		if ($is_wp === false || (isset($_GET['action']) && $_GET['action'] === 'sishell')) {
 			$this->render_gui();
 
 			// Stop all scripts
